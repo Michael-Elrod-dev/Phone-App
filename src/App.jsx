@@ -322,7 +322,7 @@ function App() {
             <div className="day-total">{formatCurrency(total)}</div>
           )}
           {payday && (
-            <div className="payday-icon">✓</div>
+            <div className="payday-icon">$</div>
           )}
         </div>
       )
