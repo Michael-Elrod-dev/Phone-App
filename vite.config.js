@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  base: '/phone-app/',
+  base: '/Phone-App/',  // Match the exact capitalization of your repo name
   plugins: [
     react(),
     VitePWA({
@@ -16,8 +16,8 @@ export default defineConfig({
         theme_color: '#1a1a1a',
         background_color: '#1a1a1a',
         display: 'standalone',
-        scope: '/phone-app/',
-        start_url: '/phone-app/',
+        scope: '/Phone-App/',        // Match capitalization
+        start_url: '/Phone-App/',    // Match capitalization
         icons: [
           {
             src: 'vite.svg',
