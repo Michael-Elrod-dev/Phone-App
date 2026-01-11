@@ -17,9 +17,9 @@ function App() {
   })
   const [fieldErrors, setFieldErrors] = useState({})
   const [undoDelete, setUndoDelete] = useState(null)
-  const [payDays, setPayDays] = useState([7, 22])
+  const [payDays, setPayDays] = useState([])
   const [showPayDaysForm, setShowPayDaysForm] = useState(false)
-  const [payDaysInput, setPayDaysInput] = useState('')
+  const [payDayFormData, setPayDayFormData] = useState([])
 
   useEffect(() => {
     const saved = localStorage.getItem('bills')
@@ -28,7 +28,17 @@ function App() {
     }
     const savedPayDays = localStorage.getItem('payDays')
     if (savedPayDays) {
-      setPayDays(JSON.parse(savedPayDays))
+      const parsed = JSON.parse(savedPayDays)
+
+      // Migration: Check if old format (array of numbers)
+      if (parsed.length > 0 && typeof parsed[0] === 'number') {
+        // Convert old format to new format with default $0 amount
+        const migrated = parsed.map(day => ({ day, amount: 0 }))
+        setPayDays(migrated)
+      } else {
+        // Already new format
+        setPayDays(parsed)
+      }
     }
   }, [])
 
@@ -264,11 +274,41 @@ function App() {
   }
 
   const isPayDay = (day) => {
-    return payDays.includes(day)
+    return payDays.some(pd => pd.day === day)
+  }
+
+  const getPayDayAmount = (day) => {
+    const payDay = payDays.find(pd => pd.day === day)
+    return payDay ? payDay.amount : 0
+  }
+
+  const addPayDayRow = () => {
+    setPayDayFormData([...payDayFormData, { day: '', amount: '' }])
+
+    if (navigator.vibrate) {
+      navigator.vibrate(50)
+    }
+  }
+
+  const removePayDay = (index) => {
+    setPayDayFormData(payDayFormData.filter((_, i) => i !== index))
+
+    if (navigator.vibrate) {
+      navigator.vibrate(50)
+    }
+  }
+
+  const updatePayDayField = (index, field, value) => {
+    const updated = [...payDayFormData]
+    updated[index][field] = value
+    setPayDayFormData(updated)
   }
 
   const handleEditPayDaysClick = () => {
-    setPayDaysInput(payDays.join(', '))
+    setPayDayFormData(payDays.map(pd => ({
+      day: pd.day.toString(),
+      amount: pd.amount.toString()
+    })))
     setShowPayDaysForm(true)
 
     // Haptic feedback
@@ -278,16 +318,30 @@ function App() {
   }
 
   const savePayDays = () => {
-    const input = payDaysInput.trim()
-    if (!input) {
-      setPayDays([])
-      setShowPayDaysForm(false)
-      return
-    }
+    // Filter out incomplete entries and parse values
+    const validPayDays = payDayFormData
+      .filter(pd => pd.day && pd.amount)
+      .map(pd => ({
+        day: parseInt(pd.day),
+        amount: parseFloat(pd.amount)
+      }))
+      .filter(pd => !isNaN(pd.day) && !isNaN(pd.amount) && pd.day >= 1 && pd.day <= 31 && pd.amount >= 0)
 
-    const days = input.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d >= 1 && d <= 31)
-    const uniqueDays = [...new Set(days)].sort((a, b) => a - b)
-    setPayDays(uniqueDays)
+    // Remove duplicates by day (keep last entry if duplicate)
+    const uniquePayDays = validPayDays.reduce((acc, pd) => {
+      const existingIndex = acc.findIndex(item => item.day === pd.day)
+      if (existingIndex >= 0) {
+        acc[existingIndex] = pd
+      } else {
+        acc.push(pd)
+      }
+      return acc
+    }, [])
+
+    // Sort by day
+    uniquePayDays.sort((a, b) => a.day - b.day)
+
+    setPayDays(uniquePayDays)
     setShowPayDaysForm(false)
 
     // Haptic feedback
@@ -322,7 +376,7 @@ function App() {
             <div className="day-total">{formatCurrency(total)}</div>
           )}
           {payday && (
-            <div className="payday-icon">$</div>
+            <div className="payday-amount">+{formatCurrency(getPayDayAmount(day))}</div>
           )}
         </div>
       )
@@ -523,19 +577,42 @@ function App() {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h3>Edit Pay Days</h3>
 
-            <div className="form-field">
-              <label className="field-label">Pay Days (comma-separated, e.g., "7, 15, 22")</label>
-              <input
-                type="text"
-                placeholder="e.g., 7, 15, 22"
-                value={payDaysInput}
-                onChange={(e) => setPayDaysInput(e.target.value)}
-              />
+            <div className="payday-list">
+              {payDayFormData.map((pd, index) => (
+                <div key={index} className="payday-entry">
+                  <div className="payday-fields">
+                    <div className="form-field payday-day-field">
+                      <label className="field-label">Day</label>
+                      <input
+                        type="number"
+                        placeholder="1-31"
+                        value={pd.day}
+                        onChange={(e) => updatePayDayField(index, 'day', e.target.value)}
+                        min="1"
+                        max="31"
+                      />
+                    </div>
+                    <div className="form-field payday-amount-field">
+                      <label className="field-label">Amount</label>
+                      <input
+                        type="number"
+                        placeholder="0.00"
+                        value={pd.amount}
+                        onChange={(e) => updatePayDayField(index, 'amount', e.target.value)}
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                  <button className="remove-payday-button" onClick={() => removePayDay(index)}>
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
 
-            <div className="payday-info">
-              Enter the day(s) of the month you get paid. You can enter multiple days separated by commas.
-            </div>
+            <button className="add-payday-button" onClick={addPayDayRow}>
+              + Add Pay Day
+            </button>
 
             <div className="form-buttons">
               <button onClick={savePayDays}>Save</button>
