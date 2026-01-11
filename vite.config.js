@@ -2,9 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
 export default defineConfig({
-  base: '/Phone-App/',
+  base: '/phone-app/',
   plugins: [
     react(),
     VitePWA({
@@ -17,8 +16,8 @@ export default defineConfig({
         theme_color: '#1a1a1a',
         background_color: '#1a1a1a',
         display: 'standalone',
-        scope: '/',
-        start_url: '/',
+        scope: '/phone-app/',
+        start_url: '/phone-app/',
         icons: [
           {
             src: 'vite.svg',
