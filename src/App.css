@@ -1,0 +1,387 @@
+.app {
+  max-width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+  background: #1a1a1a;
+}
+
+.header {
+  background: #2a2a2a;
+  color: #fff;
+  padding: 1rem;
+  text-align: center;
+  border-bottom: 1px solid #333;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.month-selector {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #2a2a2a;
+  margin: 0.5rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.month-selector h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.month-selector button {
+  background: #CC785C;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.month-selector button:active {
+  background: #b36850;
+}
+
+.calendar {
+  margin: 0.5rem;
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 0.5rem;
+  border: 1px solid #333;
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 0.5rem;
+}
+
+.calendar-day-name {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #888;
+  padding: 0.5rem 0;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  background: #1f1f1f;
+  border-radius: 6px;
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: default;
+  position: relative;
+  border: 2px solid transparent;
+}
+
+.calendar-day.empty {
+  background: transparent;
+  border: none;
+}
+
+.calendar-day.today {
+  border-color: #fff;
+}
+
+.calendar-day.has-bills {
+  background: #3a2d28;
+  cursor: pointer;
+  border-color: #CC785C;
+}
+
+.calendar-day.has-bills:active {
+  background: #4a3d38;
+}
+
+.day-number {
+  font-size: 0.9rem;
+  color: #ccc;
+  margin-bottom: 0.15rem;
+}
+
+.calendar-day.today .day-number {
+  color: #fff;
+  font-weight: 700;
+}
+
+.calendar-day.has-bills .day-number {
+  color: #CC785C;
+  font-weight: 600;
+}
+
+.day-total {
+  font-size: 0.65rem;
+  color: #CC785C;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.add-button {
+  width: calc(100% - 1rem);
+  margin: 1rem 0.5rem;
+  padding: 1rem;
+  background: #CC785C;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.add-button:active {
+  background: #b36850;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal {
+  background: #2a2a2a;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 1px solid #444;
+}
+
+.modal h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+  color: #fff;
+}
+
+.recurring-toggle {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #1f1f1f;
+  border-radius: 6px;
+}
+
+.recurring-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.recurring-toggle input[type="radio"] {
+  cursor: pointer;
+  width: auto;
+  margin: 0;
+}
+
+.form-field {
+  margin-bottom: 1rem;
+}
+
+.field-label {
+  display: block;
+  color: #ccc;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.modal input[type="text"],
+.modal input[type="number"],
+.modal input[type="date"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #444;
+  border-radius: 6px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background: #1f1f1f;
+  color: #fff;
+}
+
+.modal input:focus {
+  outline: none;
+  border-color: #CC785C;
+}
+
+.modal input::placeholder {
+  color: #666;
+}
+
+.form-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.form-buttons button {
+  padding: 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.form-buttons button:first-child {
+  background: #CC785C;
+  color: white;
+}
+
+.form-buttons button:first-child:active {
+  background: #b36850;
+}
+
+.form-buttons button:last-child {
+  background: #3a3a3a;
+  color: #ccc;
+}
+
+.form-buttons button:last-child:active {
+  background: #4a4a4a;
+}
+
+.bills-list {
+  margin: 1rem 0;
+}
+
+.bill-item {
+  background: #1f1f1f;
+  margin-bottom: 0.75rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.bill-info {
+  margin-bottom: 0.75rem;
+}
+
+.bill-name {
+  font-weight: 600;
+  color: #fff;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.bill-recurring {
+  display: inline-block;
+  background: #3a2d28;
+  color: #CC785C;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.bill-amount {
+  font-weight: 700;
+  color: #CC785C;
+  font-size: 1.3rem;
+  margin-bottom: 0.75rem;
+}
+
+.bill-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.bill-actions button {
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.bill-actions button:first-child {
+  background: #3a3a3a;
+  color: #ccc;
+}
+
+.bill-actions button:first-child:active {
+  background: #4a4a4a;
+}
+
+.bill-actions button:last-child {
+  background: #4a2a2a;
+  color: #ff6b6b;
+}
+
+.bill-actions button:last-child:active {
+  background: #5a3a3a;
+}
+
+.modal-total {
+  padding: 1rem;
+  background: #1f1f1f;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #CC785C;
+  margin-bottom: 1rem;
+  border: 1px solid #333;
+}
+
+.close-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #3a3a3a;
+  color: #ccc;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.close-button:active {
+  background: #4a4a4a;
+}
