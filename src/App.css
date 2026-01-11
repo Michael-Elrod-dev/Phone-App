@@ -83,6 +83,8 @@
   cursor: default;
   position: relative;
   border: 2px solid transparent;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .calendar-day.empty {
@@ -126,6 +128,28 @@
   font-weight: 600;
   text-align: center;
   line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.payday-icon {
+  position: absolute;
+  bottom: 0.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: #4CAF50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .add-button {
@@ -144,6 +168,24 @@
 
 .add-button:active {
   background: #b36850;
+}
+
+.edit-paydays-button {
+  width: calc(100% - 1rem);
+  margin: 0 0.5rem 1rem 0.5rem;
+  padding: 0.75rem;
+  background: #3a3a3a;
+  color: #ccc;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.edit-paydays-button:active {
+  background: #4a4a4a;
 }
 
 .modal-overlay {
@@ -199,6 +241,31 @@
   cursor: pointer;
   width: auto;
   margin: 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0.75rem;
+  background: #1f1f1f;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.checkbox-label:hover {
+  background: #252525;
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #CC785C;
 }
 
 .form-field {
@@ -320,14 +387,16 @@
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-size: 0.75rem;
+  margin-right: 0.5rem;
 }
 
-.bill-notes {
-  margin-top: 0.5rem;
-  font-size: 0.85rem;
-  color: #999;
-  font-style: italic;
-  line-height: 1.4;
+.bill-autopay {
+  display: inline-block;
+  background: #2a3a2d;
+  color: #78CC85;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
 }
 
 .bill-amount {
@@ -467,4 +536,14 @@
 
 .toast-dismiss:active {
   color: #fff;
+}
+
+.payday-info {
+  background: #1f1f1f;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  color: #999;
+  line-height: 1.4;
 }

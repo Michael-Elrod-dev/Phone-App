@@ -13,21 +13,32 @@ function App() {
     day: '',
     date: '',
     recurring: true,
-    notes: ''
+    autopay: false
   })
   const [fieldErrors, setFieldErrors] = useState({})
   const [undoDelete, setUndoDelete] = useState(null)
+  const [payDays, setPayDays] = useState([7, 22])
+  const [showPayDaysForm, setShowPayDaysForm] = useState(false)
+  const [payDaysInput, setPayDaysInput] = useState('')
 
   useEffect(() => {
     const saved = localStorage.getItem('bills')
     if (saved) {
       setBills(JSON.parse(saved))
     }
+    const savedPayDays = localStorage.getItem('payDays')
+    if (savedPayDays) {
+      setPayDays(JSON.parse(savedPayDays))
+    }
   }, [])
 
   useEffect(() => {
     localStorage.setItem('bills', JSON.stringify(bills))
   }, [bills])
+
+  useEffect(() => {
+    localStorage.setItem('payDays', JSON.stringify(payDays))
+  }, [payDays])
 
   const addBill = () => {
     const errors = {}
@@ -49,7 +60,7 @@ function App() {
       recurring: formData.recurring,
       day: formData.recurring ? parseInt(formData.day) : null,
       date: !formData.recurring ? formData.date : null,
-      notes: formData.notes || ''
+      autopay: formData.autopay
     }
 
     setBills([...bills, newBill])
@@ -78,7 +89,7 @@ function App() {
             recurring: formData.recurring,
             day: formData.recurring ? parseInt(formData.day) : null,
             date: !formData.recurring ? formData.date : null,
-            notes: formData.notes || ''
+            autopay: formData.autopay
           }
         : b
     ))
@@ -135,7 +146,7 @@ function App() {
       day: bill.recurring ? bill.day.toString() : '',
       date: !bill.recurring ? bill.date : '',
       recurring: bill.recurring,
-      notes: bill.notes || ''
+      autopay: bill.autopay || false
     })
     setEditingId(bill.id)
     setShowAddForm(true)
@@ -154,7 +165,7 @@ function App() {
       day: '',
       date: '',
       recurring: true,
-      notes: ''
+      autopay: false
     })
     setFieldErrors({})
     setShowAddForm(false)
@@ -238,7 +249,10 @@ function App() {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+      useGrouping: false
     }).format(amount)
   }
 
@@ -247,6 +261,39 @@ function App() {
     return today.getFullYear() === currentDate.getFullYear() &&
            today.getMonth() === currentDate.getMonth() &&
            today.getDate() === day
+  }
+
+  const isPayDay = (day) => {
+    return payDays.includes(day)
+  }
+
+  const handleEditPayDaysClick = () => {
+    setPayDaysInput(payDays.join(', '))
+    setShowPayDaysForm(true)
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(50)
+    }
+  }
+
+  const savePayDays = () => {
+    const input = payDaysInput.trim()
+    if (!input) {
+      setPayDays([])
+      setShowPayDaysForm(false)
+      return
+    }
+
+    const days = input.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d >= 1 && d <= 31)
+    const uniqueDays = [...new Set(days)].sort((a, b) => a - b)
+    setPayDays(uniqueDays)
+    setShowPayDaysForm(false)
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(50)
+    }
   }
 
   const renderCalendar = () => {
@@ -262,6 +309,7 @@ function App() {
       const total = getTotalForDay(day)
       const hasBills = total > 0
       const today = isToday(day)
+      const payday = isPayDay(day)
 
       days.push(
         <div
@@ -272,6 +320,9 @@ function App() {
           <div className="day-number">{day}</div>
           {hasBills && (
             <div className="day-total">{formatCurrency(total)}</div>
+          )}
+          {payday && (
+            <div className="payday-icon">✓</div>
           )}
         </div>
       )
@@ -309,6 +360,10 @@ function App() {
 
       <button className="add-button" onClick={handleAddBillClick}>
         + Add Bill
+      </button>
+
+      <button className="edit-paydays-button" onClick={handleEditPayDaysClick}>
+        Edit Pay Days
       </button>
 
       {showAddForm && (
@@ -398,13 +453,14 @@ function App() {
             )}
 
             <div className="form-field">
-              <label className="field-label">Notes (optional)</label>
-              <textarea
-                placeholder="e.g., Autopay enabled, Due date flexible"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                rows="3"
-              />
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={formData.autopay}
+                  onChange={(e) => setFormData({ ...formData, autopay: e.target.checked })}
+                />
+                Autopay Enabled
+              </label>
             </div>
 
             <div className="form-buttons">
@@ -430,8 +486,8 @@ function App() {
                     {bill.recurring && (
                       <div className="bill-recurring">Recurring</div>
                     )}
-                    {bill.notes && (
-                      <div className="bill-notes">{bill.notes}</div>
+                    {bill.autopay && (
+                      <div className="bill-autopay">Autopay Enabled</div>
                     )}
                   </div>
                   <div className="bill-amount">{formatCurrency(bill.amount)}</div>
@@ -459,6 +515,33 @@ function App() {
           <span className="toast-message">Bill deleted</span>
           <button className="toast-button" onClick={undoDeleteBill}>Undo</button>
           <button className="toast-dismiss" onClick={dismissUndo}>×</button>
+        </div>
+      )}
+
+      {showPayDaysForm && (
+        <div className="modal-overlay" onClick={() => setShowPayDaysForm(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Edit Pay Days</h3>
+
+            <div className="form-field">
+              <label className="field-label">Pay Days (comma-separated, e.g., "7, 15, 22")</label>
+              <input
+                type="text"
+                placeholder="e.g., 7, 15, 22"
+                value={payDaysInput}
+                onChange={(e) => setPayDaysInput(e.target.value)}
+              />
+            </div>
+
+            <div className="payday-info">
+              Enter the day(s) of the month you get paid. You can enter multiple days separated by commas.
+            </div>
+
+            <div className="form-buttons">
+              <button onClick={savePayDays}>Save</button>
+              <button onClick={() => setShowPayDaysForm(false)}>Cancel</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
