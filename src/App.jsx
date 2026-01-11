@@ -376,7 +376,7 @@ function App() {
             <div className="day-total">{formatCurrency(total)}</div>
           )}
           {payday && (
-            <div className="payday-amount">+{formatCurrency(getPayDayAmount(day))}</div>
+            <div className="payday-amount">{formatCurrency(getPayDayAmount(day))}</div>
           )}
         </div>
       )
