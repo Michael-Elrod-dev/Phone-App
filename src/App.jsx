@@ -178,10 +178,6 @@ function App() {
 
   return (
     <div className="app">
-      <header className="header">
-        <h1>Payment Tracker</h1>
-      </header>
-
       <div className="month-selector">
         <button onClick={() => changeMonth(-1)}>&lt;</button>
         <h2>
