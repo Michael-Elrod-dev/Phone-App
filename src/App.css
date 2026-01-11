@@ -215,7 +215,8 @@
 
 .modal input[type="text"],
 .modal input[type="number"],
-.modal input[type="date"] {
+.modal input[type="date"],
+.modal textarea {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #444;
@@ -224,14 +225,33 @@
   box-sizing: border-box;
   background: #1f1f1f;
   color: #fff;
+  font-family: inherit;
+  transition: border-color 0.2s;
 }
 
-.modal input:focus {
+.modal textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.modal input:focus,
+.modal textarea:focus {
   outline: none;
   border-color: #CC785C;
 }
 
-.modal input::placeholder {
+.modal input.error,
+.modal textarea.error {
+  border-color: #ff4444;
+}
+
+.modal input.error:focus,
+.modal textarea.error:focus {
+  border-color: #ff4444;
+}
+
+.modal input::placeholder,
+.modal textarea::placeholder {
   color: #666;
 }
 
@@ -302,6 +322,14 @@
   font-size: 0.75rem;
 }
 
+.bill-notes {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #999;
+  font-style: italic;
+  line-height: 1.4;
+}
+
 .bill-amount {
   font-weight: 700;
   color: #CC785C;
@@ -370,4 +398,73 @@
 
 .close-button:active {
   background: #4a4a4a;
+}
+
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateX(-50%) translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+}
+
+.toast-message {
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.toast-button {
+  background: #CC785C;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.toast-button:active {
+  background: #b36850;
+}
+
+.toast-dismiss {
+  background: transparent;
+  color: #999;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-dismiss:active {
+  color: #fff;
 }

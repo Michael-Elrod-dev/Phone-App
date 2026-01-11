@@ -12,8 +12,11 @@ function App() {
     amount: '',
     day: '',
     date: '',
-    recurring: true
+    recurring: true,
+    notes: ''
   })
+  const [fieldErrors, setFieldErrors] = useState({})
+  const [undoDelete, setUndoDelete] = useState(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('bills')
@@ -27,9 +30,17 @@ function App() {
   }, [bills])
 
   const addBill = () => {
-    if (!formData.name || !formData.amount) return
-    if (formData.recurring && !formData.day) return
-    if (!formData.recurring && !formData.date) return
+    const errors = {}
+
+    if (!formData.name) errors.name = true
+    if (!formData.amount) errors.amount = true
+    if (formData.recurring && !formData.day) errors.day = true
+    if (!formData.recurring && !formData.date) errors.date = true
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
 
     const newBill = {
       id: Date.now(),
@@ -37,7 +48,8 @@ function App() {
       amount: parseFloat(formData.amount),
       recurring: formData.recurring,
       day: formData.recurring ? parseInt(formData.day) : null,
-      date: !formData.recurring ? formData.date : null
+      date: !formData.recurring ? formData.date : null,
+      notes: formData.notes || ''
     }
 
     setBills([...bills, newBill])
@@ -45,9 +57,17 @@ function App() {
   }
 
   const updateBill = () => {
-    if (!formData.name || !formData.amount) return
-    if (formData.recurring && !formData.day) return
-    if (!formData.recurring && !formData.date) return
+    const errors = {}
+
+    if (!formData.name) errors.name = true
+    if (!formData.amount) errors.amount = true
+    if (formData.recurring && !formData.day) errors.day = true
+    if (!formData.recurring && !formData.date) errors.date = true
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      return
+    }
 
     setBills(bills.map(b =>
       b.id === editingId
@@ -57,7 +77,8 @@ function App() {
             amount: parseFloat(formData.amount),
             recurring: formData.recurring,
             day: formData.recurring ? parseInt(formData.day) : null,
-            date: !formData.recurring ? formData.date : null
+            date: !formData.recurring ? formData.date : null,
+            notes: formData.notes || ''
           }
         : b
     ))
@@ -65,8 +86,46 @@ function App() {
   }
 
   const deleteBill = (id) => {
+    const billToDelete = bills.find(b => b.id === id)
     setBills(bills.filter(b => b.id !== id))
     setSelectedDay(null)
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(50)
+    }
+
+    // Set undo state
+    setUndoDelete({ bill: billToDelete, timeout: null })
+
+    // Clear undo after 5 seconds
+    const timeout = setTimeout(() => {
+      setUndoDelete(null)
+    }, 5000)
+
+    setUndoDelete({ bill: billToDelete, timeout })
+  }
+
+  const undoDeleteBill = () => {
+    if (undoDelete && undoDelete.bill) {
+      setBills([...bills, undoDelete.bill])
+      if (undoDelete.timeout) {
+        clearTimeout(undoDelete.timeout)
+      }
+      setUndoDelete(null)
+
+      // Haptic feedback
+      if (navigator.vibrate) {
+        navigator.vibrate(50)
+      }
+    }
+  }
+
+  const dismissUndo = () => {
+    if (undoDelete && undoDelete.timeout) {
+      clearTimeout(undoDelete.timeout)
+    }
+    setUndoDelete(null)
   }
 
   const startEdit = (bill) => {
@@ -75,11 +134,17 @@ function App() {
       amount: bill.amount.toString(),
       day: bill.recurring ? bill.day.toString() : '',
       date: !bill.recurring ? bill.date : '',
-      recurring: bill.recurring
+      recurring: bill.recurring,
+      notes: bill.notes || ''
     })
     setEditingId(bill.id)
     setShowAddForm(true)
     setSelectedDay(null)
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(50)
+    }
   }
 
   const resetForm = () => {
@@ -88,10 +153,51 @@ function App() {
       amount: '',
       day: '',
       date: '',
-      recurring: true
+      recurring: true,
+      notes: ''
     })
+    setFieldErrors({})
     setShowAddForm(false)
     setEditingId(null)
+  }
+
+  const clearFieldError = (fieldName) => {
+    if (fieldErrors[fieldName]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[fieldName]
+        return newErrors
+      })
+    }
+  }
+
+  const handleDayClick = (day, hasBills) => {
+    if (hasBills) {
+      setSelectedDay(day)
+
+      // Haptic feedback
+      if (navigator.vibrate) {
+        navigator.vibrate(50)
+      }
+    }
+  }
+
+  const handleAddBillClick = () => {
+    setShowAddForm(true)
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(50)
+    }
+  }
+
+  const handleMonthChange = (delta) => {
+    changeMonth(delta)
+
+    // Haptic feedback
+    if (navigator.vibrate) {
+      navigator.vibrate(30)
+    }
   }
 
   const getDaysInMonth = (date) => {
@@ -161,7 +267,7 @@ function App() {
         <div
           key={day}
           className={`calendar-day ${today ? 'today' : ''} ${hasBills ? 'has-bills' : ''}`}
-          onClick={() => hasBills && setSelectedDay(day)}
+          onClick={() => handleDayClick(day, hasBills)}
         >
           <div className="day-number">{day}</div>
           {hasBills && (
@@ -179,11 +285,11 @@ function App() {
   return (
     <div className="app">
       <div className="month-selector">
-        <button onClick={() => changeMonth(-1)}>&lt;</button>
+        <button onClick={() => handleMonthChange(-1)}>&lt;</button>
         <h2>
           {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
         </h2>
-        <button onClick={() => changeMonth(1)}>&gt;</button>
+        <button onClick={() => handleMonthChange(1)}>&gt;</button>
       </div>
 
       <div className="calendar">
@@ -201,7 +307,7 @@ function App() {
         </div>
       </div>
 
-      <button className="add-button" onClick={() => setShowAddForm(true)}>
+      <button className="add-button" onClick={handleAddBillClick}>
         + Add Bill
       </button>
 
@@ -237,7 +343,11 @@ function App() {
                 type="text"
                 placeholder="e.g., Rent, Electric, Internet"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value })
+                  clearFieldError('name')
+                }}
+                className={fieldErrors.name ? 'error' : ''}
               />
             </div>
 
@@ -247,8 +357,12 @@ function App() {
                 type="number"
                 placeholder="0.00"
                 value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, amount: e.target.value })
+                  clearFieldError('amount')
+                }}
                 step="0.01"
+                className={fieldErrors.amount ? 'error' : ''}
               />
             </div>
 
@@ -259,9 +373,13 @@ function App() {
                   type="number"
                   placeholder="1-31"
                   value={formData.day}
-                  onChange={(e) => setFormData({ ...formData, day: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, day: e.target.value })
+                    clearFieldError('day')
+                  }}
                   min="1"
                   max="31"
+                  className={fieldErrors.day ? 'error' : ''}
                 />
               </div>
             ) : (
@@ -270,10 +388,24 @@ function App() {
                 <input
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, date: e.target.value })
+                    clearFieldError('date')
+                  }}
+                  className={fieldErrors.date ? 'error' : ''}
                 />
               </div>
             )}
+
+            <div className="form-field">
+              <label className="field-label">Notes (optional)</label>
+              <textarea
+                placeholder="e.g., Autopay enabled, Due date flexible"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                rows="3"
+              />
+            </div>
 
             <div className="form-buttons">
               <button onClick={editingId ? updateBill : addBill}>
@@ -298,6 +430,9 @@ function App() {
                     {bill.recurring && (
                       <div className="bill-recurring">Recurring</div>
                     )}
+                    {bill.notes && (
+                      <div className="bill-notes">{bill.notes}</div>
+                    )}
                   </div>
                   <div className="bill-amount">{formatCurrency(bill.amount)}</div>
                   <div className="bill-actions">
@@ -316,6 +451,14 @@ function App() {
               Close
             </button>
           </div>
+        </div>
+      )}
+
+      {undoDelete && (
+        <div className="toast">
+          <span className="toast-message">Bill deleted</span>
+          <button className="toast-button" onClick={undoDeleteBill}>Undo</button>
+          <button className="toast-dismiss" onClick={dismissUndo}>×</button>
         </div>
       )}
     </div>
