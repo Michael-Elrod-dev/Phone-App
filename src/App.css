@@ -607,3 +607,47 @@
 .add-payday-button:active {
   background: #4a4a4a;
 }
+
+/* Pay Day Summary Section */
+.payday-summary {
+  margin: 0.5rem;
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #333;
+}
+
+.payday-summary-message {
+  text-align: center;
+  color: #999;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+}
+
+.payday-summary-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.payday-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #1f1f1f;
+  border-radius: 6px;
+  border: 1px solid #333;
+}
+
+.payday-summary-label {
+  color: #ccc;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.payday-summary-amount {
+  color: #CC785C;
+  font-size: 1.1rem;
+  font-weight: 700;
+}

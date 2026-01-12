@@ -282,6 +282,97 @@ function App() {
     return payDay ? payDay.amount : 0
   }
 
+  const getNextPayDays = (count) => {
+    if (!payDays || payDays.length === 0) return []
+
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const nextPayDayDates = []
+    const sortedPayDays = [...payDays].sort((a, b) => a.day - b.day)
+
+    let currentDate = new Date(today)
+
+    while (nextPayDayDates.length < count) {
+      const year = currentDate.getFullYear()
+      const month = currentDate.getMonth()
+
+      for (const pd of sortedPayDays) {
+        // Skip if pay day doesn't exist in this month (e.g., day 31 in February)
+        if (pd.day > getDaysInMonth(new Date(year, month, 1))) continue
+
+        const payDayDate = new Date(year, month, pd.day)
+        payDayDate.setHours(0, 0, 0, 0)
+
+        // Only include if after today (not equal - pay day excluded)
+        if (payDayDate > today) {
+          nextPayDayDates.push(payDayDate)
+          if (nextPayDayDates.length >= count) break
+        }
+      }
+
+      // Move to next month if haven't found enough
+      if (nextPayDayDates.length < count) {
+        currentDate = new Date(year, month + 1, 1)
+      }
+    }
+
+    return nextPayDayDates
+  }
+
+  const getBillsBeforeDate = (endDate) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const normalizedEndDate = new Date(endDate)
+    normalizedEndDate.setHours(0, 0, 0, 0)
+
+    const billsInRange = []
+
+    bills.forEach(bill => {
+      if (bill.recurring) {
+        // Check each month from today to endDate
+        let checkDate = new Date(today)
+
+        while (checkDate < normalizedEndDate) {
+          const year = checkDate.getFullYear()
+          const month = checkDate.getMonth()
+          const daysInMonth = getDaysInMonth(new Date(year, month, 1))
+
+          // Skip if bill day doesn't exist in this month
+          if (bill.day > daysInMonth) {
+            checkDate = new Date(year, month + 1, 1)
+            continue
+          }
+
+          const billDate = new Date(year, month, bill.day)
+          billDate.setHours(0, 0, 0, 0)
+
+          // Include if billDate >= today AND billDate < endDate (excludes pay day)
+          if (billDate >= today && billDate < normalizedEndDate) {
+            billsInRange.push(bill)
+          }
+
+          checkDate = new Date(year, month + 1, 1)
+        }
+      } else {
+        // One-time bill
+        const billDate = new Date(bill.date)
+        billDate.setHours(0, 0, 0, 0)
+
+        if (billDate >= today && billDate < normalizedEndDate) {
+          billsInRange.push(bill)
+        }
+      }
+    })
+
+    return billsInRange
+  }
+
+  const calculateTotalBeforeDate = (endDate) => {
+    const billsInRange = getBillsBeforeDate(endDate)
+    return billsInRange.reduce((sum, bill) => sum + bill.amount, 0)
+  }
+
   const addPayDayRow = () => {
     setPayDayFormData([...payDayFormData, { day: '', amount: '' }])
 
@@ -410,6 +501,41 @@ function App() {
         <div className="calendar-grid">
           {renderCalendar()}
         </div>
+      </div>
+
+      {/* Bills Before Pay Days Summary */}
+      <div className="payday-summary">
+        {payDays.length === 0 ? (
+          <div className="payday-summary-message">
+            Configure pay days to see upcoming bills summary
+          </div>
+        ) : (
+          <div className="payday-summary-content">
+            {(() => {
+              const nextPayDays = getNextPayDays(2)
+              return (
+                <>
+                  {nextPayDays.length > 0 && (
+                    <div className="payday-summary-row">
+                      <span className="payday-summary-label">Before Next Pay:</span>
+                      <span className="payday-summary-amount">
+                        {formatCurrency(calculateTotalBeforeDate(nextPayDays[0]))}
+                      </span>
+                    </div>
+                  )}
+                  {nextPayDays.length === 2 && (
+                    <div className="payday-summary-row">
+                      <span className="payday-summary-label">Before 2nd Pay:</span>
+                      <span className="payday-summary-amount">
+                        {formatCurrency(calculateTotalBeforeDate(nextPayDays[1]))}
+                      </span>
+                    </div>
+                  )}
+                </>
+              )
+            })()}
+          </div>
+        )}
       </div>
 
       <button className="add-button" onClick={handleAddBillClick}>
